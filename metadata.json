@@ -1,0 +1,6 @@
+{
+  "name": "ResaleMeter",
+  "description": "Historical HDB resale price comparison and trend analysis for flat buyers in Singapore.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
