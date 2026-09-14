@@ -6,7 +6,6 @@
  */
 
 import React, { useState } from 'react';
-import DisclaimerBanner from './components/DisclaimerBanner';
 import Navbar from './components/Navbar';
 import ScreenOneExplorer from './components/ScreenOneExplorer';
 import ScreenTwoComparison from './components/ScreenTwoComparison';
@@ -16,10 +15,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col antialiased selection:bg-blue-100 selection:text-blue-900">
-      {/* 1. Academic Disclaimer Banner */}
-      <DisclaimerBanner />
-
-      {/* 2. Top Application Navbar & Screen Switcher */}
+      {/* 1. Top Application Navbar & Screen Switcher */}
       <Navbar activeScreen={activeScreen} onSelectScreen={setActiveScreen} />
 
       {/* 3. Main Screen Viewport */}
