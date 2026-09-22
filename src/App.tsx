@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import ScreenOneExplorer from './components/ScreenOneExplorer';
 import ScreenTwoComparison from './components/ScreenTwoComparison';
+import DisqusComments from './components/DisqusComments';
 
 export default function App() {
   const [activeScreen, setActiveScreen] = useState<'screen1' | 'screen2'>('screen1');
@@ -21,7 +22,11 @@ export default function App() {
       {/* 3. Main Screen Viewport */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {activeScreen === 'screen1' ? (
-          <ScreenOneExplorer />
+          <>
+            <ScreenOneExplorer />
+            {/* Disqus comment section on the main page */}
+            <DisqusComments />
+          </>
         ) : (
           <ScreenTwoComparison />
         )}
