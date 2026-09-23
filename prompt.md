@@ -189,7 +189,38 @@ I am still seeing the disclaimer above the App that says the data are synthetic 
 **Came back with:** Correct, 1 file touched.  
 **What I changed next and why:** Nothing. I stopped prompting here.
 
+## 12. Embed Disqus comment in ResaleMeter
+```
+ROLE: You are a front-end developer working in my existing project. Add to it; do not rewrite what is already there.
+GOAL: Add a Disqus comment section to the bottom of my main page only, so that visitors can leave feedback on the product in a single thread.
+CONTEXT:
+My Disqus shortname is: ymstudio
+My live address is: https://mgmt6110week03problemset02resalemet.vercel.app/
+OUTPUT: A small component on the main page that loads the Disqus Universal Code once, with page.url set to my full live address (https, and no query string) and page.identifier set to the fixed string "home". Put one short line above it inviting visitors to say what worked for them and what did not.
+GUARDRAILS: Load the Disqus script only once, even when the component re-renders. Mount it on the main page only, so that every comment lands in one thread. Do not change anything else on the page, and add no npm package without telling me why one is needed.
+```
+**Came back with:** 2 files touched. A short line inviting visitors to comment, but there is no comment box.
 
+## 13. Inspect the error
+Used ChatGPT to inspect the error. Go to the deployed page -> Right Click -> Inspect -> Console and pasted the error message "Uncaught Error: parseColor received unparsable color: oklch(0.2080.042265.755)" with "embed.js:52" at the end of error message. Typed "document.querySelector('#disqus_thread') in Console and returned "null". Typed "window.DISQUS" and returned object "request, host, reset". The Disqus Javascript has loaded successfully, but the page does not contain the HTML element "<div id="disqus_thread"></div>" where Disqus is supposed to render the comments. So I run another prompt:
+```
+Inspect the Disqus integration. On the deployed Vercel site, window.DISQUS exists, but document.querySelector('#disqus_thread') returns null. This indicates the Disqus script loads but the required <div id="disqus_thread"></div> container is not being rendered.  
+Find the component/view where the Disqus comments should appear and ensure <div id="disqus_thread"></div> is actually mounted in the DOM before initializing or resetting Disqus.
+If this is a React single-page app where views/articles change without a full page reload, call window.DISQUS.reset({ reload: true, config: ... }) only after the new view containing #disqus_thread has mounted.
+Do not change unrelated styling or functionality.
+```
+
+**Came back with:** One file touched. The Disqus comment box still missing. Ran a few JavaScript on Vercel console, return values points to "Disqus has started initializing and has touched the container, but it stops before creating the actual comment iframe." and "Disqus's color parser cannot handle an oklch(...) color coming from your site's CSS/theme.". Ran four getComputedStyle(...) JS to confirm and one return OKLCH value, so use a CSS workaround to help Disqus decide the comment colour theme.
+```
+Disqus fails to initialize because #disqus_thread inherits an OKLCH text color (oklch(0.208 0.042 265.755)), and Disqus's embed.js throws parseColor received unparseable color.
+Add an explicit standard RGB or hex color to the Disqus container so it does not inherit an OKLCH color. Do not change the application's overall theme.
+For example:
+#disqus_thread {
+  color: rgb(33, 33, 33);
+}
+
+Ensure this style is applied before Disqus initializes or DISQUS.reset() runs.
+```
 
 
 
