@@ -55,7 +55,11 @@ export default function DisqusComments() {
         <p className="text-sm sm:text-base font-semibold text-slate-700 mb-6">
           We would love to hear your feedback: let us know what worked for you and what did not!
         </p>
-        <div id="disqus_thread" ref={containerRef} />
+        <div
+          id="disqus_thread"
+          ref={containerRef}
+          style={{ color: 'rgb(33, 33, 33)' }}
+        />
       </div>
     </section>
   );
