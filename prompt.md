@@ -202,7 +202,7 @@ GUARDRAILS: Load the Disqus script only once, even when the component re-renders
 ```
 **Came back with:** 2 files touched. A short line inviting visitors to comment, but there is no comment box.
 
-## 13. Inspect the error
+## 13. Collaborate with ChatGPT to find out why Disqus box is missing
 Used ChatGPT to inspect the error. Go to the deployed page -> Right Click -> Inspect -> Console and pasted the error message "Uncaught Error: parseColor received unparsable color: oklch(0.2080.042265.755)" with "embed.js:52" at the end of error message. Typed "document.querySelector('#disqus_thread') in Console and returned "null". Typed "window.DISQUS" and returned object "request, host, reset". The Disqus Javascript has loaded successfully, but the page does not contain the HTML element "<div id="disqus_thread"></div>" where Disqus is supposed to render the comments. So I run another prompt:
 ```
 Inspect the Disqus integration. On the deployed Vercel site, window.DISQUS exists, but document.querySelector('#disqus_thread') returns null. This indicates the Disqus script loads but the required <div id="disqus_thread"></div> container is not being rendered.  
@@ -211,7 +211,10 @@ If this is a React single-page app where views/articles change without a full pa
 Do not change unrelated styling or functionality.
 ```
 
-**Came back with:** One file touched. The Disqus comment box still missing. Ran a few JavaScript on Vercel console, return values points to "Disqus has started initializing and has touched the container, but it stops before creating the actual comment iframe." and "Disqus's color parser cannot handle an oklch(...) color coming from your site's CSS/theme.". Ran four getComputedStyle(...) JS to confirm and one return OKLCH value, so use a CSS workaround to help Disqus decide the comment colour theme.
+**Came back with:** One file touched. The Disqus comment box still missing. Ran a few Javascript on Vercel console, and return values points to "Disqus has started initializing and has touched the container, but it stops before creating the actual comment iframe." and "Disqus's color parser cannot handle an oklch(...) color coming from your site's CSS/theme.". 
+
+## 14. Confirm and fix the conflict with Cascading Style Sheets (CCS) theme
+Ran four getComputedStyle(...) to check and one of them return OKLCH value, so prompt the agent to help Disqus parse the OKLCH value
 ```
 Disqus fails to initialize because #disqus_thread inherits an OKLCH text color (oklch(0.208 0.042 265.755)), and Disqus's embed.js throws parseColor received unparseable color.
 Add an explicit standard RGB or hex color to the Disqus container so it does not inherit an OKLCH color. Do not change the application's overall theme.
@@ -222,3 +225,32 @@ For example:
 
 Ensure this style is applied before Disqus initializes or DISQUS.reset() runs.
 ```
+
+**Came back with:** Two files touched. The Disqus comment box is working.
+
+## 15. Embed Microsoft Clarity to my webpage
+```
+ROLE: You are a front-end developer working in my existing project.
+GOAL: Add Microsoft Clarity to my product, together with a privacy notice that covers both Microsoft Clarity and Disqus.
+CONTEXT:
+My live address is: https://mgmt6110week03problemset02resalemet.vercel.app/
+Clarity gave me this tracking code:
+<script type="text/javascript">
+(function(c,l,a,r,i,t,y){
+c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "ymr1777a3f");
+</script>
+OUTPUT:
+Add the tracking code to the head of index.html, wrapped so that it runs only when window.location.hostname is exactly my live address's hostname. Keep the project ID
+inside the code exactly as Clarity provided it. Add this notice to the footer of every page, with the three links working:
+"This page uses Microsoft Clarity and Disqus, which use cookies to record how visitors use the site and to host comments. By using this page you agree that we and Microsoft
+may collect and use this data. See the Microsoft Privacy Statement
+(https://www.microsoft.com/privacy/privacystatement), the Disqus privacy policy
+(https://disqus.com/privacy-policy/) and the Disqus data sharing settings
+(https://disqus.com/data-sharing-settings/)."
+GUARDRAILS: Do not edit the project ID. Do not load the tracking code twice. Do not change anything else on the page.
+```
+**What came back:** Two files touched. Clarity embedded in live address.
+
