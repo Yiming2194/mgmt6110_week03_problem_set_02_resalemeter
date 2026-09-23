@@ -33,7 +33,7 @@ CONTEXT: Individual Problem Set 2 for MGMT 6110 Human-AI Collaboration at SMU. B
 remove the section. change nothing else.
 
 ```
-**What came back:** correct, one file touched.  
+**What came back:** correct, one file touched.
 **What I changed next and why:** made several edits to the section on historical range on screen 1 to the desired state as there are irrelevant and repetitive information presented to the user.
 
 ---
@@ -44,7 +44,7 @@ remove the section. change nothing else.
 remove the selected elements entirely. add a drop-down filter list (with multiple selection) to the historical range section for user to select the timeframe of the historical range by year. change nothing else. Apply style changes to the selected element(s).
 
 ```
-**What came back:** correct, one file touched.  
+**What came back:** correct, one file touched.
 **What I changed next and why:** added a timeframe filter by quarter and year to the historical trend section on screen 1 for the user to decide the span of historical transactions data they would like to see.
 
 ---
@@ -55,7 +55,7 @@ Add a drop-down filter list (with multiple selection) to the historical trend se
 Apply style changes to the selected element(s).
 
 ```
-**What came back:** correct, one file touched.  
+**What came back:** correct, one file touched.
 **What I changed next and why:** removed historical range section on screen 1 entirely above as I realise now that it has become redundant.
 
 ---
@@ -67,7 +67,7 @@ remove the historical range section entirely. change nothing else.
 Apply style changes to the selected element(s).
 
 ```
-**What came back:** correct, one file touched.  
+**What came back:** correct, one file touched.
 **What I changed next and why:** similarly, added a timeframe filter by quarter and year to the comparative trend analysis on screen 2 for the user to decide the span of historical transactions data they would like to see.
 
 ---
@@ -79,7 +79,7 @@ Add a drop-down filter list (with multiple selection) to the historical trend se
 Apply style changes to the selected element(s).
 
 ```
-**What came back:** correct, one file touched. I notice a change in the UI for flat type filter in screen 1 from drop-down to card.  
+**What came back:** correct, one file touched. I notice a change in the UI for flat type filter in screen 1 from drop-down to card.
 **What I changed next and why:** remove the bottom two sections on screen 2 as they are either duplicate information or contain other out-of-scope dataset.
 
 ---
@@ -91,6 +91,7 @@ remove both sections - historical price range comparison and the decision matrix
 Apply style changes to the selected element(s).
 
 ```
+<<<<<<< Updated upstream
 **What came back:** correct, one file touched.  
 **What I changed next and why:** Nothing. Move on to link the front end to a real back end.
 
@@ -221,7 +222,3 @@ For example:
 
 Ensure this style is applied before Disqus initializes or DISQUS.reset() runs.
 ```
-
-
-
-
