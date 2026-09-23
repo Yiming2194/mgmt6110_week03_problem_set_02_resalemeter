@@ -53,6 +53,38 @@ export default function App() {
             </a>
             .
           </p>
+          <p className="text-[11px] text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            This page uses Microsoft Clarity and Disqus, which use cookies to record how visitors
+            use the site and to host comments. By using this page you agree that we and Microsoft
+            may collect and use this data. See the{' '}
+            <a
+              href="https://www.microsoft.com/privacy/privacystatement"
+              target="_blank"
+              rel="noreferrer"
+              className="text-slate-500 underline hover:text-blue-600 transition-colors"
+            >
+              Microsoft Privacy Statement
+            </a>
+            , the{' '}
+            <a
+              href="https://disqus.com/privacy-policy/"
+              target="_blank"
+              rel="noreferrer"
+              className="text-slate-500 underline hover:text-blue-600 transition-colors"
+            >
+              Disqus privacy policy
+            </a>{' '}
+            and the{' '}
+            <a
+              href="https://disqus.com/data-sharing-settings/"
+              target="_blank"
+              rel="noreferrer"
+              className="text-slate-500 underline hover:text-blue-600 transition-colors"
+            >
+              Disqus data sharing settings
+            </a>
+            .
+          </p>
         </div>
       </footer>
     </div>
