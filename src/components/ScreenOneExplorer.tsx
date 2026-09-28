@@ -757,7 +757,7 @@ export default function ScreenOneExplorer() {
                         x={paddingLeft - 8}
                         y={y + 4}
                         textAnchor="end"
-                        className="fill-slate-500 font-semibold text-[10px] sm:text-[11px]"
+                        className="fill-slate-500 font-semibold text-[13px] sm:text-[11px]"
                       >
                         {formatCompactSGD(val)}
                       </text>
@@ -834,8 +834,8 @@ export default function ScreenOneExplorer() {
                           x={pt.x}
                           y={chartHeight - 12}
                           textAnchor="middle"
-                          className={`text-[9px] sm:text-[10px] font-bold ${
-                            isSelected ? 'fill-blue-700 font-extrabold text-[11px]' : 'fill-slate-600'
+                          className={`text-[12px] sm:text-[10px] font-bold ${
+                            isSelected ? 'fill-blue-700 font-extrabold text-[13px] sm:text-[11px]' : 'fill-slate-600'
                           }`}
                         >
                           {pt.point.quarterLabel.replace(' 20', ' ')}
