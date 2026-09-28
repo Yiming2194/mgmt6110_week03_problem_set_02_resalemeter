@@ -254,3 +254,45 @@ GUARDRAILS: Do not edit the project ID. Do not load the tracking code twice. Do 
 ```
 **What came back:** Two files touched. Clarity embedded in live address.
 
+## 16. Codex as a blind arbiter - on 1 finding rated differently (fourth row)
+```
+ROLE: You are a neutral arbiter between two usability reviewers who rated the same problem differently. You do not know which of them built the product. Do not try to work it out.
+
+CONTEXT: The product is an AI-augmented web app. The web app is for HDB resale flat buyers in Singapore to understand how the resale price of a flat compare with historical HDB resale transactions for similar flats in a selected town.
+Both reviewers inspected it against Nielsen's ten usability heuristics and rated the problem on this severity scale:
+0 I don't agree that this is a usability problem at all.
+1 Cosmetic problem only. Need not be fixed unless extra time is available.
+2 Minor usability problem. Fixing this should be given low priority.
+3 Major usability problem. Important to fix, so should be given high priority.
+4 Usability catastrophe. Imperative to fix before the product can be released.
+A rating rests on four factors: how often the problem happens, what it costs when it does, whether the person can learn around it, and whether it damages the product's standing out of proportion.
+
+REVIEWER A:
+Where: https://mgmt6110week03problemset02resalemet.vercel.app/
+What I did, what I saw: When selecting an option with no data (e.g. Ang Mo Kio, 1-Room), it mentioned no resale records, but there is still a trend line in the chart. Hence, it is unsure what is the chart referring to
+Which heuristic: 9, Help Users Recognize, Diagnose, and Recover from Errors
+Screen or system: System. The backend needs to know that a graph should not be visible if there are no transaction records
+Severity, and why: 2, This might only apply to a small number of combinations
+The repair: Remove the trend line if there are no transactions, or explain what could the data displayed mean
+
+REVIEWER B:
+Where: https://mgmt6110week03problemset02resalemet.vercel.app/, on both screens
+What I did, what I saw: When "1-Room" is selected and the screen says there's no resale transaction records found for the selected town, flat type and timeframe, but the price trend chart is being generated.
+Which heuristic: 4, Consistency and Standards.
+Screen or system: Screen, the "Response" on Network and the total record retrieved from data.gov.sg is 0. So the screen is probably retaining previous selection's data instead of clearing itself.
+Severity, and why: 3, showing the HDB resale price trend and range on the charts can confuse the user on the data availability and credibility of the App.
+The repair: There should be a message in the price trend section that tell user that there's no resale transaction records and the previous selection should be cleared from the chart.
+
+EVIDENCE NEITHER REVIEWER CONTROLS:
+- Reviewers who raised this problem independently, counting A and B: 1 out of 3
+- Severities that reviewers other than A and B gave this problem: None
+
+GOAL: Judge the evidence, not the reviewers.
+1. Say whether A and B describe the same problem. If they do not, say so and stop.
+2. For each of the four factors, say what the evidence shows and what it cannot show.
+3. Give the severity the evidence supports, and name the factor that decided it.
+4. Name the one observation that would change your rating, and say how it could be collected quickly.
+
+GUARDRAILS: Do not split the difference between A and B unless the evidence puts the rating there. If the evidence is too thin to decide, say so plainly instead of inventing a reason. Do not ask which reviewer built the product.
+```
+**What came back:** A and B describe the same problem. Arbiter support severity 3 based on the cost when it happens.
