@@ -146,6 +146,12 @@ export default function ScreenOneExplorer() {
     setSelectedQuarters(stats.quarterlyTrends.map((t) => t.quarter));
   };
 
+  const selectRecentQuarters = (count: number) => {
+    const all = stats.quarterlyTrends.map((t) => t.quarter);
+    const recent = all.slice(-count);
+    setSelectedQuarters(recent);
+  };
+
   const selectYearOnly = (yearStr: string) => {
     const matching = stats.quarterlyTrends
       .filter((t) => t.quarter.startsWith(yearStr))
@@ -544,19 +550,30 @@ export default function ScreenOneExplorer() {
                     </button>
                   </div>
 
-                  {/* Year Quick Action Filter Shortcuts */}
+                  {/* Quick Action Filter Shortcuts */}
                   <div className="flex items-center gap-1.5 pb-2.5 mb-2.5 border-b border-slate-100 flex-wrap">
                     <span className="text-[11px] font-semibold text-slate-500">Quick set:</span>
-                    {availableYears.slice(0, 5).map((year) => (
-                      <button
-                        key={year}
-                        type="button"
-                        onClick={() => selectYearOnly(year)}
-                        className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-[11px] font-bold text-slate-700 transition-colors cursor-pointer"
-                      >
-                        {year}
-                      </button>
-                    ))}
+                    <button
+                      type="button"
+                      onClick={() => selectRecentQuarters(4)}
+                      className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-[11px] font-bold text-slate-700 transition-colors cursor-pointer"
+                    >
+                      Past 4 Quarters
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => selectRecentQuarters(8)}
+                      className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-[11px] font-bold text-slate-700 transition-colors cursor-pointer"
+                    >
+                      Past 8 Quarters
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => selectRecentQuarters(12)}
+                      className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-[11px] font-bold text-slate-700 transition-colors cursor-pointer"
+                    >
+                      Past 12 Quarters
+                    </button>
                   </div>
 
                   {/* Grouped Quarters list */}
