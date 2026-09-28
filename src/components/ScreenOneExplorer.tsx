@@ -358,131 +358,131 @@ export default function ScreenOneExplorer() {
             </p>
           </div>
         </div>
+
+        {/* Live Data Status Indicator & Four State Notifications directly under the two selectors */}
+        {dataState === 'loading' && (
+          <div
+            id="data-status-loading-card"
+            className="mt-5 p-4 bg-blue-50/90 border-2 border-blue-200 rounded-xl text-blue-900 shadow-xs"
+          >
+            <div className="flex items-start space-x-3.5">
+              <RefreshCw className="w-5 h-5 text-blue-600 animate-spin shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-base font-bold text-blue-950">
+                  Fetching the latest HDB resale transaction records from data.gov.sg...
+                </p>
+                <p className="text-xs text-blue-700 mt-1">
+                  Querying resale registration records for {selectedTown} ({selectedFlatType}) from Jan-2017 onwards.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {dataState === 'empty' && (
+          <div
+            id="data-status-empty-card"
+            className="mt-5 p-4 bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-800 shadow-xs"
+          >
+            <div className="flex items-start space-x-3.5">
+              <SearchX className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-base font-bold text-slate-900">
+                  No resale transaction records were found for the selected town, flat type, and timeframe.
+                </p>
+                <p className="text-xs text-slate-600 mt-1">
+                  Please try choosing a different town or flat type, or expand the quarter timeframe.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {dataState === 'refused' && (
+          <div
+            id="data-status-refused-card"
+            className="mt-5 p-4 bg-amber-50/90 border-2 border-amber-300 rounded-xl text-amber-950 shadow-xs space-y-3"
+          >
+            <div className="flex items-start space-x-3.5">
+              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-base font-bold text-amber-950">
+                  The data.gov.sg API refused the request due to an unauthenticated or invalid credential.
+                </p>
+                <p className="text-xs text-amber-900 mt-1 leading-relaxed">
+                  {errorDetails ||
+                    'The environment variable HDB_RESALE_PRICE_API_KEY is missing or invalid in your deployment environment.'}
+                </p>
+              </div>
+            </div>
+            <div className="pl-8.5 flex flex-wrap items-center gap-3 pt-2 border-t border-amber-200/80">
+              <button
+                id="retry-refused-request-btn"
+                type="button"
+                onClick={() => setRetryTrigger((prev) => prev + 1)}
+                className="px-3.5 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Retry Live Request</span>
+              </button>
+              <span className="text-xs text-amber-800 font-medium">
+                Note: A baseline synthetic estimate is displayed below for UI preview.
+              </span>
+            </div>
+          </div>
+        )}
+
+        {dataState === 'unreachable' && (
+          <div
+            id="data-status-unreachable-card"
+            className="mt-5 p-4 bg-red-50/90 border-2 border-red-200 rounded-xl text-red-950 shadow-xs space-y-3"
+          >
+            <div className="flex items-start space-x-3.5">
+              <WifiOff className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-base font-bold text-red-950">
+                  Unable to establish a connection to data.gov.sg; the upstream service is currently unreachable.
+                </p>
+                <p className="text-xs text-red-800 mt-1 leading-relaxed">
+                  {errorDetails ||
+                    'The upstream service failed to respond or network connection could not be established.'}
+                </p>
+              </div>
+            </div>
+            <div className="pl-8.5 flex flex-wrap items-center gap-3 pt-2 border-t border-red-200/80">
+              <button
+                id="retry-unreachable-request-btn"
+                type="button"
+                onClick={() => setRetryTrigger((prev) => prev + 1)}
+                className="px-3.5 py-1.5 bg-red-700 hover:bg-red-800 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Retry Connection</span>
+              </button>
+              <span className="text-xs text-red-700 font-medium">
+                Note: A baseline synthetic estimate is displayed below for UI preview.
+              </span>
+            </div>
+          </div>
+        )}
+
+        {dataState === 'success' && (
+          <div
+            id="data-status-success-card"
+            className="mt-5 p-3.5 bg-emerald-50/90 border border-emerald-200 rounded-xl text-emerald-950 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 shadow-2xs"
+          >
+            <div className="flex items-center space-x-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-emerald-900">
+                Live Data Active: Real HDB resale flat prices from data.gov.sg (Jan-2017 onwards)
+              </span>
+            </div>
+            <span className="bg-emerald-100 text-emerald-900 text-xs font-bold px-2.5 py-0.5 rounded-full self-start sm:self-auto">
+              {recordCount.toLocaleString()} total transactions since 2017 from data.gov.sg
+            </span>
+          </div>
+        )}
       </section>
-
-      {/* Live Data Status Indicator & Four State Notifications */}
-      {dataState === 'loading' && (
-        <section
-          id="data-status-loading-card"
-          className="p-5 bg-blue-50/90 border-2 border-blue-200 rounded-2xl text-blue-900 shadow-xs"
-        >
-          <div className="flex items-start space-x-3.5">
-            <RefreshCw className="w-5 h-5 text-blue-600 animate-spin shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-base font-bold text-blue-950">
-                Fetching the latest HDB resale transaction records from data.gov.sg...
-              </p>
-              <p className="text-xs text-blue-700 mt-1">
-                Querying resale registration records for {selectedTown} ({selectedFlatType}) from Jan-2017 onwards.
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {dataState === 'empty' && (
-        <section
-          id="data-status-empty-card"
-          className="p-5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-slate-800 shadow-xs"
-        >
-          <div className="flex items-start space-x-3.5">
-            <SearchX className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-base font-bold text-slate-900">
-                No resale transaction records were found for the selected town, flat type, and timeframe.
-              </p>
-              <p className="text-xs text-slate-600 mt-1">
-                Please try choosing a different town or flat type, or expand the quarter timeframe.
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {dataState === 'refused' && (
-        <section
-          id="data-status-refused-card"
-          className="p-5 bg-amber-50/90 border-2 border-amber-300 rounded-2xl text-amber-950 shadow-xs space-y-3"
-        >
-          <div className="flex items-start space-x-3.5">
-            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-base font-bold text-amber-950">
-                The data.gov.sg API refused the request due to an unauthenticated or invalid credential.
-              </p>
-              <p className="text-xs text-amber-900 mt-1 leading-relaxed">
-                {errorDetails ||
-                  'The environment variable HDB_RESALE_PRICE_API_KEY is missing or invalid in your deployment environment.'}
-              </p>
-            </div>
-          </div>
-          <div className="pl-8.5 flex flex-wrap items-center gap-3 pt-2 border-t border-amber-200/80">
-            <button
-              id="retry-refused-request-btn"
-              type="button"
-              onClick={() => setRetryTrigger((prev) => prev + 1)}
-              className="px-3.5 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Retry Live Request</span>
-            </button>
-            <span className="text-xs text-amber-800 font-medium">
-              Note: A baseline synthetic estimate is displayed below for UI preview.
-            </span>
-          </div>
-        </section>
-      )}
-
-      {dataState === 'unreachable' && (
-        <section
-          id="data-status-unreachable-card"
-          className="p-5 bg-red-50/90 border-2 border-red-200 rounded-2xl text-red-950 shadow-xs space-y-3"
-        >
-          <div className="flex items-start space-x-3.5">
-            <WifiOff className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-base font-bold text-red-950">
-                Unable to establish a connection to data.gov.sg; the upstream service is currently unreachable.
-              </p>
-              <p className="text-xs text-red-800 mt-1 leading-relaxed">
-                {errorDetails ||
-                  'The upstream service failed to respond or network connection could not be established.'}
-              </p>
-            </div>
-          </div>
-          <div className="pl-8.5 flex flex-wrap items-center gap-3 pt-2 border-t border-red-200/80">
-            <button
-              id="retry-unreachable-request-btn"
-              type="button"
-              onClick={() => setRetryTrigger((prev) => prev + 1)}
-              className="px-3.5 py-1.5 bg-red-700 hover:bg-red-800 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Retry Connection</span>
-            </button>
-            <span className="text-xs text-red-700 font-medium">
-              Note: A baseline synthetic estimate is displayed below for UI preview.
-            </span>
-          </div>
-        </section>
-      )}
-
-      {dataState === 'success' && (
-        <section
-          id="data-status-success-card"
-          className="p-3.5 bg-emerald-50/90 border border-emerald-200 rounded-xl text-emerald-950 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 shadow-2xs"
-        >
-          <div className="flex items-center space-x-2.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span className="text-xs sm:text-sm font-bold text-emerald-900">
-              Live Data Active: Real HDB resale flat prices from data.gov.sg (Jan-2017 onwards)
-            </span>
-          </div>
-          <span className="bg-emerald-100 text-emerald-900 text-xs font-bold px-2.5 py-0.5 rounded-full self-start sm:self-auto">
-            {recordCount.toLocaleString()} transactions analyzed
-          </span>
-        </section>
-      )}
 
       {/* SECTION B: Historical Price Trend Over Time */}
       <section
