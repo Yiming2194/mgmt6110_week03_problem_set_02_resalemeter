@@ -809,6 +809,14 @@ export default function ScreenOneExplorer() {
                   <span className="font-black text-blue-700">
                     {formatSGD(activePoint.medianPrice)}
                   </span>
+                  {activePoint.isMedianInterpolated && (
+                    <span
+                      className="ml-1.5 text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200"
+                      title="Midpoint derived from the central values of an even number of transactions"
+                    >
+                      interpolated
+                    </span>
+                  )}
                 </span>
                 <span>
                   <span className="text-slate-500">Range: </span>

@@ -53,6 +53,7 @@ export interface QuarterlyTrendPoint {
   quarter: string; // e.g. '2023-Q1'
   quarterLabel: string; // e.g. 'Q1 23'
   medianPrice: number;
+  isMedianInterpolated?: boolean;
   averagePrice: number;
   minPrice: number;
   maxPrice: number;
@@ -64,6 +65,7 @@ export interface TownFlatSummaryStats {
   flatType: FlatType;
   overallMin: number;
   overallMedian: number;
+  isOverallMedianInterpolated?: boolean;
   overallMax: number;
   q25: number;
   q75: number;

@@ -158,6 +158,30 @@ export async function fetchLiveHdbStats(
   }
 }
 
+export interface MedianCalculationResult {
+  value: number;
+  isInterpolated: boolean;
+}
+
+/**
+ * Minimal pure helper to calculate the sample median.
+ * For even-sized samples, averages the two central values and signals isInterpolated: true.
+ * For odd-sized samples, takes the exact central value with isInterpolated: false.
+ */
+export function calculateMedian(numbers: number[]): MedianCalculationResult {
+  if (numbers.length === 0) {
+    return { value: 0, isInterpolated: false };
+  }
+  const sorted = [...numbers].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const isInterpolated = sorted.length % 2 === 0;
+  const value = isInterpolated
+    ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
+    : sorted[mid];
+
+  return { value, isInterpolated };
+}
+
 /**
  * Compute quarterly trend points and aggregate stats from live records
  */
@@ -201,10 +225,9 @@ export function computeLiveSummaryStats(
 
     const minPrice = prices.length > 0 ? prices[0] : 0;
     const maxPrice = prices.length > 0 ? prices[prices.length - 1] : 0;
-    const medianPrice =
-      prices.length > 0
-        ? prices[Math.floor(prices.length / 2)]
-        : 0;
+    const medianResult = calculateMedian(prices);
+    const medianPrice = medianResult.value;
+    const isMedianInterpolated = medianResult.isInterpolated;
     const avgPrice =
       prices.length > 0
         ? Math.round(prices.reduce((sum, p) => sum + p, 0) / prices.length)
@@ -217,6 +240,7 @@ export function computeLiveSummaryStats(
       quarter: quarterKey,
       quarterLabel,
       medianPrice,
+      isMedianInterpolated,
       averagePrice: avgPrice,
       minPrice,
       maxPrice,
@@ -238,11 +262,13 @@ export function computeLiveSummaryStats(
 
   // Use latest quarter median if available, otherwise overall median
   const latestTrend = quarterlyTrends[quarterlyTrends.length - 1];
+  const overallMedianCalc = calculateMedian(allValidPrices);
   const overallMedian =
-    latestTrend?.medianPrice ||
-    (allValidPrices.length > 0
-      ? allValidPrices[Math.floor(allValidPrices.length / 2)]
-      : 0);
+    latestTrend?.medianPrice || overallMedianCalc.value;
+  const isOverallMedianInterpolated =
+    latestTrend !== undefined
+      ? Boolean(latestTrend.isMedianInterpolated)
+      : overallMedianCalc.isInterpolated;
 
   const q25Index = Math.floor(allValidPrices.length * 0.25);
   const q75Index = Math.floor(allValidPrices.length * 0.75);
@@ -288,6 +314,7 @@ export function computeLiveSummaryStats(
     flatType,
     overallMin,
     overallMedian,
+    isOverallMedianInterpolated,
     overallMax,
     q25,
     q75,

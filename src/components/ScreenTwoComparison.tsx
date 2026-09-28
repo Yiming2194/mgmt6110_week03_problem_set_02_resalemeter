@@ -411,9 +411,19 @@ export default function ScreenTwoComparison() {
                 {/* Instant Snapshot */}
                 <div className="mt-3.5 pt-3 border-t border-slate-200/80 flex items-center justify-between">
                   <span className="text-xs text-slate-500">Current Median:</span>
-                  <span className="text-sm font-black text-slate-900">
-                    {formatSGD(combo.stats.overallMedian)}
-                  </span>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="text-sm font-black text-slate-900">
+                      {formatSGD(combo.stats.overallMedian)}
+                    </span>
+                    {combo.stats.isOverallMedianInterpolated && (
+                      <span
+                        className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200"
+                        title="Midpoint derived from the central values of an even number of transactions"
+                      >
+                        interpolated
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -797,9 +807,19 @@ export default function ScreenTwoComparison() {
                       {formatCompactSGD(quarterData.maxPrice)}
                     </span>
                   </div>
-                  <span className="text-base sm:text-lg font-black text-slate-900">
-                    {formatSGD(quarterData.medianPrice)}
-                  </span>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="text-base sm:text-lg font-black text-slate-900">
+                      {formatSGD(quarterData.medianPrice)}
+                    </span>
+                    {quarterData.isMedianInterpolated && (
+                      <span
+                        className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200"
+                        title="Midpoint derived from the central values of an even number of transactions"
+                      >
+                        interpolated
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}
