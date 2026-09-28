@@ -21,15 +21,14 @@ export default function App() {
 
       {/* 3. Main Screen Viewport */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {activeScreen === 'screen1' ? (
-          <>
-            <ScreenOneExplorer />
-            {/* Disqus comment section on the main page */}
-            <DisqusComments />
-          </>
-        ) : (
+        <div className={activeScreen === 'screen1' ? 'block' : 'hidden'}>
+          <ScreenOneExplorer />
+          {/* Disqus comment section on the main page */}
+          <DisqusComments />
+        </div>
+        <div className={activeScreen === 'screen2' ? 'block' : 'hidden'}>
           <ScreenTwoComparison />
-        )}
+        </div>
       </main>
 
       {/* 4. Prototype Footer */}
