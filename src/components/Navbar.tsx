@@ -30,11 +30,6 @@ export default function Navbar({ activeScreen, onSelectScreen }: NavbarProps) {
                 </p>
               </div>
             </div>
-
-            {/* Prototype notice badge for mobile */}
-            <span className="sm:hidden text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-medium">
-              Mock Data
-            </span>
           </div>
 
           {/* Screen Navigation Tabs */}
