@@ -82,12 +82,20 @@ export default function ScreenOneExplorer() {
           setSelectedQuarters(quarters);
           setActiveQuarterIndex(quarters.length > 0 ? quarters.length - 1 : null);
         } else {
+          setLiveStats(null);
+          setRecordCount(0);
+          setSelectedQuarters([]);
+          setActiveQuarterIndex(null);
           setErrorDetails(result.details || '');
         }
       })
       .catch((err) => {
         if (!isMounted) return;
         setDataState('unreachable');
+        setLiveStats(null);
+        setRecordCount(0);
+        setSelectedQuarters([]);
+        setActiveQuarterIndex(null);
         setErrorDetails(err?.message || 'Failed to establish connection to data.gov.sg.');
       });
 
@@ -97,10 +105,25 @@ export default function ScreenOneExplorer() {
   }, [selectedTown, selectedFlatType, retryTrigger]);
 
   // Use live stats from real data.gov.sg records when successful;
-  // otherwise fallback to baseline reference data for demonstration
+  // when empty, do not use mock data; fallback to baseline only on initial/error states
   const stats = useMemo(() => {
     if (dataState === 'success' && liveStats) {
       return liveStats;
+    }
+    if (dataState === 'empty') {
+      return {
+        town: selectedTown,
+        flatType: selectedFlatType,
+        overallMin: 0,
+        overallMedian: 0,
+        overallMax: 0,
+        q25: 0,
+        q75: 0,
+        avgPsf: 0,
+        avgPsm: 0,
+        quarterlyTrends: [],
+        transactions: [],
+      };
     }
     return getTownFlatSummaryStats(selectedTown, selectedFlatType);
   }, [dataState, liveStats, selectedTown, selectedFlatType]);
@@ -140,6 +163,7 @@ export default function ScreenOneExplorer() {
 
   // Filtered quarterly trends based on selected quarters & years
   const activeQuarterTrends = useMemo(() => {
+    if (stats.quarterlyTrends.length === 0) return [];
     const filtered = stats.quarterlyTrends.filter((t) =>
       selectedQuarters.includes(t.quarter)
     );
@@ -168,8 +192,14 @@ export default function ScreenOneExplorer() {
   const innerWidth = chartWidth - paddingLeft - paddingRight;
   const innerHeight = chartHeight - paddingTop - paddingBottom;
 
-  const trendMinPrice = Math.min(...activeQuarterTrends.map((t) => t.minPrice));
-  const trendMaxPrice = Math.max(...activeQuarterTrends.map((t) => t.maxPrice));
+  const trendMinPrice =
+    activeQuarterTrends.length > 0
+      ? Math.min(...activeQuarterTrends.map((t) => t.minPrice))
+      : 0;
+  const trendMaxPrice =
+    activeQuarterTrends.length > 0
+      ? Math.max(...activeQuarterTrends.map((t) => t.maxPrice))
+      : 1000000;
   const minChartVal = Math.floor((trendMinPrice * 0.95) / 50000) * 50000;
   const maxChartVal = Math.ceil((trendMaxPrice * 1.05) / 50000) * 50000;
   const valRange = maxChartVal - minChartVal || 1;
@@ -673,125 +703,149 @@ export default function ScreenOneExplorer() {
         )}
 
         {/* SVG Line / Envelope Chart - responsive, fits within mobile screen without horizontal scroll */}
-        <div className="mt-5 relative w-full overflow-hidden">
-          <div className="w-full">
-            <svg
-              viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-              className="w-full h-auto select-none overflow-visible"
-              preserveAspectRatio="xMidYMid meet"
-            >
-              {/* Background Grid Lines */}
-              {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                const y = chartHeight - paddingBottom - ratio * innerHeight;
-                const val = minChartVal + ratio * valRange;
-                return (
-                  <g key={i}>
-                    <line
-                      x1={paddingLeft}
-                      y1={y}
-                      x2={chartWidth - paddingRight}
-                      y2={y}
-                      stroke="#e2e8f0"
-                      strokeDasharray="4 4"
-                      strokeWidth="1"
-                    />
-                    <text
-                      x={paddingLeft - 8}
-                      y={y + 4}
-                      textAnchor="end"
-                      className="fill-slate-500 font-semibold text-[10px] sm:text-[11px]"
-                    >
-                      {formatCompactSGD(val)}
-                    </text>
-                  </g>
-                );
-              })}
+        {dataState === 'empty' || activeQuarterTrends.length === 0 ? (
+          <div className="mt-5 py-12 px-4 rounded-xl bg-slate-50/70 border border-dashed border-slate-200 text-center flex flex-col items-center justify-center">
+            <SearchX className="w-8 h-8 text-slate-400 mb-2" />
+            <p className="text-sm font-bold text-slate-700">
+              No historical resale transactions recorded for {selectedTown} ({selectedFlatType})
+            </p>
+            <p className="text-xs text-slate-500 mt-1 max-w-md">
+              There are no transactions on record from Jan-2017 to present. Please select another flat type or town.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-5 relative w-full overflow-hidden">
+            <div className="w-full">
+              <svg
+                viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                className="w-full h-auto select-none overflow-visible"
+                preserveAspectRatio="xMidYMid meet"
+              >
+                {/* Background Grid Lines */}
+                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+                  const y = chartHeight - paddingBottom - ratio * innerHeight;
+                  const val = minChartVal + ratio * valRange;
+                  return (
+                    <g key={i}>
+                      <line
+                        x1={paddingLeft}
+                        y1={y}
+                        x2={chartWidth - paddingRight}
+                        y2={y}
+                        stroke="#e2e8f0"
+                        strokeDasharray="4 4"
+                        strokeWidth="1"
+                      />
+                      <text
+                        x={paddingLeft - 8}
+                        y={y + 4}
+                        textAnchor="end"
+                        className="fill-slate-500 font-semibold text-[10px] sm:text-[11px]"
+                      >
+                        {formatCompactSGD(val)}
+                      </text>
+                    </g>
+                  );
+                })}
 
-              {/* Shaded Price Range Envelope (Min to Max) */}
-              {showRangeEnvelope && (
+                {/* Shaded Price Range Envelope (Min to Max) */}
+                {showRangeEnvelope && (
+                  <path
+                    d={envelopePathD}
+                    fill="rgba(59, 130, 246, 0.12)"
+                    stroke="rgba(59, 130, 246, 0.3)"
+                    strokeWidth="1"
+                    strokeDasharray="2 2"
+                  />
+                )}
+
+                {/* Median Trend Line */}
                 <path
-                  d={envelopePathD}
-                  fill="rgba(59, 130, 246, 0.12)"
-                  stroke="rgba(59, 130, 246, 0.3)"
-                  strokeWidth="1"
-                  strokeDasharray="2 2"
+                  d={medianPathD}
+                  fill="none"
+                  stroke="#2563eb"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
-              )}
 
-              {/* Median Trend Line */}
-              <path
-                d={medianPathD}
-                fill="none"
-                stroke="#2563eb"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+                {/* Data points & Interactive Hover Hitboxes */}
+                {medianPoints.map((pt, idx) => {
+                  const isSelected = activeQuarterIndex === idx;
+                  // When there are many quarters, show labels selectively on x-axis (first, last, and every Nth)
+                  const step = medianPoints.length > 20 ? 4 : medianPoints.length > 12 ? 2 : 1;
+                  const showLabel =
+                    isSelected ||
+                    idx === 0 ||
+                    idx === medianPoints.length - 1 ||
+                    idx % step === 0;
 
-              {/* Data points & Interactive Hover Hitboxes */}
-              {medianPoints.map((pt, idx) => {
-                const isSelected = activeQuarterIndex === idx;
-                // When there are many quarters, show labels selectively on x-axis (first, last, and every Nth)
-                const step = medianPoints.length > 20 ? 4 : medianPoints.length > 12 ? 2 : 1;
-                const showLabel =
-                  isSelected ||
-                  idx === 0 ||
-                  idx === medianPoints.length - 1 ||
-                  idx % step === 0;
+                  return (
+                    <g
+                      key={idx}
+                      className="cursor-pointer"
+                      onClick={() => setActiveQuarterIndex(idx)}
+                    >
+                      {/* Hit target for touch */}
+                      <circle cx={pt.x} cy={pt.y} r="14" fill="transparent" />
 
-                return (
-                  <g
-                    key={idx}
-                    className="cursor-pointer"
-                    onClick={() => setActiveQuarterIndex(idx)}
-                  >
-                    {/* Hit target for touch */}
-                    <circle cx={pt.x} cy={pt.y} r="14" fill="transparent" />
+                      {/* Outer ring on active */}
+                      {isSelected && (
+                        <circle
+                          cx={pt.x}
+                          cy={pt.y}
+                          r="7"
+                          fill="none"
+                          stroke="#1d4ed8"
+                          strokeWidth="2.5"
+                        />
+                      )}
 
-                    {/* Outer ring on active */}
-                    {isSelected && (
+                      {/* Point circle */}
                       <circle
                         cx={pt.x}
                         cy={pt.y}
-                        r="7"
-                        fill="none"
-                        stroke="#1d4ed8"
-                        strokeWidth="2.5"
+                        r={isSelected ? '4.5' : medianPoints.length > 24 ? '2.5' : '3.5'}
+                        fill={isSelected ? '#1d4ed8' : '#3b82f6'}
+                        stroke="#ffffff"
+                        strokeWidth={medianPoints.length > 24 ? '1' : '1.5'}
                       />
-                    )}
 
-                    {/* Point circle */}
-                    <circle
-                      cx={pt.x}
-                      cy={pt.y}
-                      r={isSelected ? '4.5' : medianPoints.length > 24 ? '2.5' : '3.5'}
-                      fill={isSelected ? '#1d4ed8' : '#3b82f6'}
-                      stroke="#ffffff"
-                      strokeWidth={medianPoints.length > 24 ? '1' : '1.5'}
-                    />
-
-                    {/* Quarter X-axis Label */}
-                    {showLabel && (
-                      <text
-                        x={pt.x}
-                        y={chartHeight - 12}
-                        textAnchor="middle"
-                        className={`text-[9px] sm:text-[10px] font-bold ${
-                          isSelected ? 'fill-blue-700 font-extrabold text-[11px]' : 'fill-slate-600'
-                        }`}
-                      >
-                        {pt.point.quarterLabel.replace(' 20', ' ')}
-                      </text>
-                    )}
-                  </g>
-                );
-              })}
-            </svg>
+                      {/* Quarter X-axis Label */}
+                      {showLabel && (
+                        <text
+                          x={pt.x}
+                          y={chartHeight - 12}
+                          textAnchor="middle"
+                          className={`text-[9px] sm:text-[10px] font-bold ${
+                            isSelected ? 'fill-blue-700 font-extrabold text-[11px]' : 'fill-slate-600'
+                          }`}
+                        >
+                          {pt.point.quarterLabel.replace(' 20', ' ')}
+                        </text>
+                      )}
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Selected Quarter Inspector Card */}
-        {activePoint && (
+        {dataState === 'empty' || !activePoint ? (
+          <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="flex items-center space-x-2">
+              <Clock className="w-4 h-4 text-slate-400" />
+              <span className="font-extrabold text-sm sm:text-base text-slate-700">
+                Quarterly Detail:
+              </span>
+              <span className="text-xs sm:text-sm text-slate-500 font-medium italic">
+                No transaction data
+              </span>
+            </div>
+          </div>
+        ) : (
           <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="flex items-center space-x-2">

@@ -62,7 +62,16 @@ export default function ScreenTwoComparison() {
   const [hoveredQuarterIndex, setHoveredQuarterIndex] = useState<number | null>(null);
 
   // Cache for live statistics per combo key (e.g. 'Tampines:4-ROOM')
-  const [liveStatsCache, setLiveStatsCache] = useState<Record<string, TownFlatSummaryStats>>({});
+  const [liveStatsCache, setLiveStatsCache] = useState<
+    Record<
+      string,
+      {
+        stats: TownFlatSummaryStats;
+        totalTransactions: number;
+        isEmpty: boolean;
+      }
+    >
+  >({});
   const [isLoadingLive, setIsLoadingLive] = useState<boolean>(false);
 
   // Timeframe filter state: defaults to all quarters
@@ -83,10 +92,37 @@ export default function ScreenTwoComparison() {
 
       try {
         const result = await fetchLiveHdbStats(combo.town, combo.flatType);
-        if (isMounted && result.state === 'success' && result.stats) {
+        if (!isMounted) return;
+
+        if (result.state === 'empty') {
           setLiveStatsCache((prev) => ({
             ...prev,
-            [cacheKey]: result.stats!,
+            [cacheKey]: {
+              stats: {
+                town: combo.town,
+                flatType: combo.flatType,
+                overallMin: 0,
+                overallMedian: 0,
+                overallMax: 0,
+                q25: 0,
+                q75: 0,
+                avgPsf: 0,
+                avgPsm: 0,
+                quarterlyTrends: [],
+                transactions: [],
+              },
+              totalTransactions: 0,
+              isEmpty: true,
+            },
+          }));
+        } else if (result.state === 'success' && result.stats) {
+          setLiveStatsCache((prev) => ({
+            ...prev,
+            [cacheKey]: {
+              stats: result.stats!,
+              totalTransactions: result.records.length,
+              isEmpty: false,
+            },
           }));
         }
       } catch {
@@ -123,17 +159,40 @@ export default function ScreenTwoComparison() {
   const comboStatsList = useMemo(() => {
     return combinations.map((combo) => {
       const cacheKey = `${combo.town}:${combo.flatType}`;
-      const stats = liveStatsCache[cacheKey] || getTownFlatSummaryStats(combo.town, combo.flatType);
+      const cached = liveStatsCache[cacheKey];
+
+      if (cached) {
+        return {
+          ...combo,
+          stats: cached.stats,
+          totalTransactions: cached.totalTransactions,
+          isEmpty: cached.isEmpty,
+          palette: COLOR_PALETTES[combo.colorKey],
+        };
+      }
+
+      // Initial baseline fallback before live fetch completes
+      const fallbackStats = getTownFlatSummaryStats(combo.town, combo.flatType);
+      const totalFallback = fallbackStats.quarterlyTrends.reduce(
+        (sum, t) => sum + t.volume,
+        0
+      );
       return {
         ...combo,
-        stats,
+        stats: fallbackStats,
+        totalTransactions: totalFallback,
+        isEmpty: false,
         palette: COLOR_PALETTES[combo.colorKey],
       };
     });
   }, [combinations, liveStatsCache]);
 
-  // All available quarters from first combo stats
+  // All available quarters from first combo with trends, or fallback
   const allAvailableQuarters = useMemo(() => {
+    const valid = comboStatsList.find(
+      (c) => !c.isEmpty && c.stats.quarterlyTrends.length > 0
+    );
+    if (valid) return valid.stats.quarterlyTrends;
     return comboStatsList[0]?.stats.quarterlyTrends || [];
   }, [comboStatsList]);
 
@@ -231,16 +290,17 @@ export default function ScreenTwoComparison() {
   const innerWidth = chartWidth - paddingLeft - paddingRight;
   const innerHeight = chartHeight - paddingTop - paddingBottom;
 
-  const allMins = comboStatsList.map((c) => c.stats.overallMin);
-  const allMaxs = comboStatsList.map((c) => c.stats.overallMax);
+  const nonZeroCombos = comboStatsList.filter((c) => !c.isEmpty);
+  const allMins = nonZeroCombos.map((c) => c.stats.overallMin);
+  const allMaxs = nonZeroCombos.map((c) => c.stats.overallMax);
 
-  // Active trend prices based on filtered quarters
-  const activeTrendMins = comboStatsList.flatMap((c) =>
+  // Active trend prices based on filtered quarters (exclude empty combos)
+  const activeTrendMins = nonZeroCombos.flatMap((c) =>
     c.stats.quarterlyTrends
       .filter((t) => selectedQuarters.includes(t.quarter))
       .map((t) => t.minPrice)
   );
-  const activeTrendMaxs = comboStatsList.flatMap((c) =>
+  const activeTrendMaxs = nonZeroCombos.flatMap((c) =>
     c.stats.quarterlyTrends
       .filter((t) => selectedQuarters.includes(t.quarter))
       .map((t) => t.maxPrice)
@@ -408,19 +468,17 @@ export default function ScreenTwoComparison() {
                   </div>
                 </div>
 
-                {/* Instant Snapshot */}
+                {/* Instant Snapshot: Transactions Recorded */}
                 <div className="mt-3.5 pt-3 border-t border-slate-200/80 flex items-center justify-between">
-                  <span className="text-xs text-slate-500">Current Median:</span>
+                  <span className="text-xs text-slate-500">Transactions Recorded:</span>
                   <div className="flex items-center space-x-1.5">
-                    <span className="text-sm font-black text-slate-900">
-                      {formatSGD(combo.stats.overallMedian)}
-                    </span>
-                    {combo.stats.isOverallMedianInterpolated && (
-                      <span
-                        className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200"
-                        title="Midpoint derived from the central values of an even number of transactions"
-                      >
-                        interpolated
+                    {combo.isEmpty ? (
+                      <span className="text-xs font-semibold text-slate-500 italic">
+                        no transaction data
+                      </span>
+                    ) : (
+                      <span className="text-sm font-black text-slate-900">
+                        {combo.totalTransactions.toLocaleString()}
                       </span>
                     )}
                   </div>
@@ -621,6 +679,11 @@ export default function ScreenTwoComparison() {
                   <span className="text-slate-800">
                     {c.town} ({c.flatType.replace('-ROOM', 'R')})
                   </span>
+                  {c.isEmpty && (
+                    <span className="text-[10px] font-medium text-slate-400 italic">
+                      (no transaction data)
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -675,6 +738,10 @@ export default function ScreenTwoComparison() {
 
               {/* Draw Lines for each Combination */}
               {comboStatsList.map((combo) => {
+                if (combo.isEmpty || combo.stats.quarterlyTrends.length === 0) {
+                  return null;
+                }
+
                 const activeComboTrends = combo.stats.quarterlyTrends.filter((t) =>
                   selectedQuarters.includes(t.quarter)
                 );
@@ -789,6 +856,8 @@ export default function ScreenTwoComparison() {
               const quarterData =
                 combo.stats.quarterlyTrends.find((t) => t.quarter === activeQuarterItem?.quarter) ||
                 combo.stats.quarterlyTrends[0];
+              const isComboEmpty = combo.isEmpty || !quarterData;
+
               return (
                 <div
                   key={combo.id}
@@ -803,21 +872,30 @@ export default function ScreenTwoComparison() {
                       {combo.town} • {combo.flatType}
                     </span>
                     <span className="text-[11px] text-slate-500">
-                      Range: {formatCompactSGD(quarterData.minPrice)} –{' '}
-                      {formatCompactSGD(quarterData.maxPrice)}
+                      {isComboEmpty
+                        ? 'no transaction data'
+                        : `Range: ${formatCompactSGD(quarterData.minPrice)} – ${formatCompactSGD(quarterData.maxPrice)}`}
                     </span>
                   </div>
                   <div className="flex items-center space-x-1.5">
-                    <span className="text-base sm:text-lg font-black text-slate-900">
-                      {formatSGD(quarterData.medianPrice)}
-                    </span>
-                    {quarterData.isMedianInterpolated && (
-                      <span
-                        className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200"
-                        title="Midpoint derived from the central values of an even number of transactions"
-                      >
-                        interpolated
+                    {isComboEmpty ? (
+                      <span className="text-xs font-semibold text-slate-400 italic">
+                        no transaction data
                       </span>
+                    ) : (
+                      <>
+                        <span className="text-base sm:text-lg font-black text-slate-900">
+                          {formatSGD(quarterData.medianPrice)}
+                        </span>
+                        {quarterData.isMedianInterpolated && (
+                          <span
+                            className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200"
+                            title="Midpoint derived from the central values of an even number of transactions"
+                          >
+                            interpolated
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
