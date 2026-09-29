@@ -713,7 +713,7 @@ Check: Verify that the multi-line chart axes exhibit the same crisp, enlarged fo
 
 **What came back:** two files touched, correct
 
-## 23. Clarify the transactions displayed on green Live Data Active banner
+## 23. Clarify the transactions number displayed on green Live Data Active banner
 ```
 ROLE: You are a sceptical senior developer and usability reviewer working in my existing project. Before you write any code, your job is to argue against the repair I propose.
 
@@ -784,3 +784,128 @@ Check: The count immediately updates back to 4,215 transactions analyzed.
 **Commit the repair:** Since the number of transactions is already displayed in the card below the price trend chart based on the quarters that applied and the banner is meant to confirm the dataset fetched for that Town and Flat Type, relabel the green badge explicitly with clarified label e.g. ## total transactions since 2017 from data.gov.sg and position the banner directly under the two selectors.
 
 **What came back:** One file touched, correct.
+
+
+## 24. Place an asking price field in Screen 1
+```
+ROLE: You are a sceptical senior developer and usability reviewer working in my existing project. Before you write any code, your job is to argue against the repair I propose.
+
+CONTEXT:
+- Live address: https://mgmt6110week03problemset02resalemet.vercel.app/
+- Who the product is for, and what it does for them: A web product for HDB resale flat buyers in Singapore to understand how the resale price of a flat compare with historical HDB resale transactions for similar flats in a selected town.
+Where: Screen 1 (Town Explorer), the description under "Historical Price Range & Trends"
+- What I did, what I saw: The description says the screen lets me "benchmark asking prices against past transactions," so I looked for a place to enter an asking price. On the screen I could see, there's only a town dropdown, flat type buttons, a quarter filter and the chart, with no field to type a price and no marker showing where a price falls in the range. I guess its precomputed.
+- Which heuristic: 6. Recognition Rather than Recall. 10. Help and Documentation
+- Screen or system: Screen. It can fix this on its own with what it already has: the median and range for each quarter are already on the page, so it can add an asking-price field near the top and show where the entered price falls on the chart and in the range, without new data.
+- Severity, and why: 2 (minor). The driver is a gap between promise and delivery: the rest of the screen works, but a user who came specifically to check an asking price, which the description says they can do, can't see how, and has to compare numbers in their head.
+- The repair: A user can type an asking price and immediately see how it compares with past sales. The field sits near the town and flat type selectors, and the result appears on the chart ("$700k is above 72% of Q3 '26 sales").
+- The evidence behind it: 1 out of 3
+- The repair I propose: Have a field sit near the town and flat selectors in both screens for user to type the asking number. Allow only number input in the field. Describe briefly how the asking price compares against the latest median price in the card that sit below the charts.
+
+GOAL: Argue against my repair.
+1. Does it solve the problem the finding describes, or a problem I already believed I had? Say which, and why.
+2. Does the problem belong to the screen or to the system, and does my repair sit in the right half?
+3. Name one heuristic this repair could break while it serves the one above, and how.
+4. Propose the smallest alternative that would make the same thing true.
+5. Tell me exactly what to do on the live address to check that the repair worked.
+
+OUTPUT: Your arguments first, as a numbered list. Then stop. Write no code until I reply with the repair I have chosen.
+
+GUARDRAILS: Do not tell me the repair is good. If you have no strong reason to doubt it, say so plainly instead of inventing one. When I do ask you to build, change only what the repair needs. Do not remove Disqus or the privacy notice, and do not break /api/health.
+```
+
+**Agent's argument:** 
+- **Does it solve the problem the finding describes, or a problem you already believed I had?**
+It solves a feature-gap problem you believed you had (needing an interactive asking-price calculator), rather than the copy-expectation gap described in the finding. The finding states: "The description says the screen lets me 'benchmark asking prices against past transactions,' so I looked for a place to enter an asking price... The driver is a gap between promise and delivery." The finding was triggered solely because the subtitle in Screen 1 over-promised a capability that wasn't implemented. Building a full input field and comparison logic across both screens builds an entire new feature set to satisfy an accidental phrase in the intro paragraph. Furthermore, putting an asking price input into Screen 2 (Compare) makes no conceptual sense: Screen 2 compares up to three completely different towns and flat types side by side (e.g. Tampines 4-Room vs Punggol 4-Room vs Bishan 4-Room). A single asking price cannot be compared against three disparate markets without confusing which flat the buyer is pricing.
+- **Does the problem belong to the screen or to the system, and does my repair sit in the right half?**
+The problem belongs strictly to the screen copy (Screen), but your repair introduces new stateful input orchestration across multiple screens.
+The root cause is a single sentence in ScreenOneExplorer.tsx. Your repair adds new form state, numeric input validation, and comparative math to both screens, overshooting a presentation/copywriting defect with application logic.
+- **Name one heuristic this repair could break while it serves the one above, and how.**
+Heuristic 8: Aesthetic and Minimalist Design (and Heuristic 4: Consistency and Standards).
+Adding a numeric input alongside the town and flat-type selectors clutters the primary exploration flow. First-time buyers exploring general price trends will wonder if entering an asking price is required before the chart can generate.
+On Screen 2, a global asking price input violates Heuristic 4 because it is ambiguous which of the 3 comparison slots the price applies to.
+- **The smallest alternative that would make the same thing true:**
+Alternative 1 (True smallest fix — 1 sentence edit):
+Align the promise with reality by updating the subtitle in src/components/ScreenOneExplorer.tsx:
+From: "...check quarterly price movements, and benchmark asking prices against past transactions."
+To: "...check quarterly price movements, and explore historical resale ranges across past transactions."
+This eliminates the expectation gap completely without adding UI complexity.
+Alternative 2 (If you genuinely want the feature):
+Implement the optional asking price field on Screen 1 only (where there is a single flat context). When a number is entered, the card below the chart displays a straightforward delta:
+"Your asking price of 645,000)."
+Leave Screen 2 untouched to avoid multi-combination ambiguity.
+- **Exactly what to do on the live address to check that the repair worked:**
+Open https://mgmt6110week03problemset02resalemet.vercel.app/ on Town Explorer (Screen 1).
+Select Ang Mo Kio and 4-Room.
+In the new optional asking price field near the selectors, type a numeric price (e.g. 650000).
+Scroll to the card below the chart (Quarterly Detail).
+Check: Verify that the card clearly states how $650,000 compares against the active quarter's median price (e.g., whether it is higher or lower, and by how much / what percentage).
+Clear the field and verify that the card reverts cleanly to its standard view with no errors or lingering text.
+
+**Commit the repair:** Place the asking price input field within the card below the price trend chart on Screen 1 only and briefly describe how it compares to the median price.
+
+**What came back:** One file touched, correct.
+
+# I stopped the prompt here as the request per day limit on my agent has been exhausted.
+## 25. Standardize the labels for town and flat type
+```
+ROLE: You are a sceptical senior developer and usability reviewer working in my existing project. Before you write any code, your job is to argue against the repair I propose.
+
+CONTEXT:
+- Live address: https://mgmt6110week03problemset02resalemet.vercel.app/
+- Who the product is for, and what it does for them: A web product for HDB resale flat buyers in Singapore to understand how the resale price of a flat compare with historical HDB resale transactions for similar flats in a selected town.
+- Where: Screen 2 (Compare), the "Snapshot Comparison at Q1 '17" cards below the chart, compared with the "Current Median" on each combination card above and with Screen 1's Quarterly Detail
+- What I did, what I saw: I opened Compare, where Tampines, Punggol and Bishan 4-Room were set as the three combinations. The cards at the top showed current medians: $668,000, $680,000 and $750,000. But the snapshot cards under the chart showed different prices for the same towns: $425,000, $455,000 and $550,000. Only the small heading "Snapshot Comparison at Q1 '17" revealed that these were 2017 prices. On Screen 1, the detail bar opens on the latest quarter (Q3 '26), so I expected the same here. The instruction to change the quarter, "(Tap any quarter along the chart axis to inspect)," sits in small grey text at the far right. The labels are also inconsistent between screens: "Tampines (East Region)" and "4-ROOM" on Screen 1, but "Tampines (East)," "4-Room" and "4R" on Screen 2.
+- Which heuristic: 4. Consistency and Standards
+- Screen or system: Screen. It can fix this on its own with what it already has: every quarter's data is already loaded for the chart, so the snapshot can default to the latest quarter like Screen 1 does, make the selected quarter more visible, and use the same town and flat-type labels everywhere.
+- Severity, and why: 2 (minor). The driver is that it contradicts itself on one screen: two different prices for "Tampines 4-Room" sit a scroll apart, and a user who misses the small "Q1 '17" label could compare towns using nine-year-old prices. It's quickly corrected once noticed.
+- The repair: Both screens behave the same way. The snapshot opens on the latest quarter, the selected quarter is shown prominently (e.g. "Showing Q3 '26 · tap the chart to change"), and each town and flat type is labelled the same way across the app.
+- The evidence behind it: 1 out of 3
+- The repair I propose: Standardize the label for town using e.g. Tampines (East) across both screens, omit the word "Region". Standard the label for flat type to e.g. "4-Room" instead of "4R" or "4-ROOM". Remove "Maisonette" that sit along the "Executive" in flat type selector in screen 2 for consistency.
+
+GOAL: Argue against my repair.
+1. Does it solve the problem the finding describes, or a problem I already believed I had? Say which, and why.
+2. Does the problem belong to the screen or to the system, and does my repair sit in the right half?
+3. Name one heuristic this repair could break while it serves the one above, and how.
+4. Propose the smallest alternative that would make the same thing true.
+5. Tell me exactly what to do on the live address to check that the repair worked.
+
+OUTPUT: Your arguments first, as a numbered list. Then stop. Write no code until I reply with the repair I have chosen.
+
+GUARDRAILS: Do not tell me the repair is good. If you have no strong reason to doubt it, say so plainly instead of inventing one. When I do ask you to build, change only what the repair needs. Do not remove Disqus or the privacy notice, and do not break /api/health.
+```
+
+**Agent's argument:** 
+- **
+  
+**Commit the repair:** 
+
+**What came back:** 
+
+## 26. Clarify the Hide Range Envelope button on screen 1
+```
+ROLE: You are a sceptical senior developer and usability reviewer working in my existing project. Before you write any code, your job is to argue against the repair I propose.
+
+CONTEXT:
+- Live address: https://mgmt6110week03problemset02resalemet.vercel.app/
+- Who the product is for, and what it does for them: A web product for HDB resale flat buyers in Singapore to understand how the resale price of a flat compare with historical HDB resale transactions for similar flats in a selected town.
+- Where: Screen 1 (Town Explorer), the shaded band around the line in the "Resale Price Trend Over Time" chart, the "Hide Range Envelope" button, and the "Quarterly Detail" bar below (e.g. "Range: $515k – $878k")
+- What I did, what I saw: I selected Tampines and 4-Room and looked at the trend chart. Around the median line there's a shaded blue band, controlled by a button called "Hide Range Envelope," but nothing on the page explains what the envelope is: the lowest and highest sale each quarter, a typical range, or something else. Around Q1 '25, the bottom of the band suddenly drops to about $300k, far below every other quarter, then jumps back up. Nothing explained whether that was a real sale, an unusual flat, or a data error. For Q3 '26, the Quarterly Detail says "Range: $515k – $878k," a spread of more than $360k, which is too wide to help me judge whether an asking price is reasonable.
+- Which heuristic: 2. Match Between System and the Real World
+- Screen or system: Both. The screen can fix part of it on its own: it can rename the envelope in plain words ("Lowest to highest sale each quarter") and add a one-line explanation or legend. But a range that matches what buyers mean by "typical price" needs the system: the server would have to calculate a middle range (for example, the middle 50% or 80% of sales) and flag unusual sales, instead of only returning each quarter's minimum and maximum.
+- Severity, and why: 2 (minor). The driver is misinterpretation rather than blockage: the median line is still clear and useful, but the band is the product's main tool for "price range boundaries," and a range stretched by one or two unusual sales can make almost any asking price look normal.
+- The repair: A user knows what the shaded band means and can use it to judge a price. Screen: the band has a plain label and a short explanation, and unusual sales are marked rather than silently stretching it. System: the server returns a typical range (e.g. middle 50% of sales) alongside the full min–max, and identifies outliers.
+- The evidence behind it: 1 out of 3
+- The repair I propose: Include another option to show the middle 50% i.e. transaction prices within the range of first quartile to third quartile in darker shade of blue.
+
+GOAL: Argue against my repair.
+1. Does it solve the problem the finding describes, or a problem I already believed I had? Say which, and why.
+2. Does the problem belong to the screen or to the system, and does my repair sit in the right half?
+3. Name one heuristic this repair could break while it serves the one above, and how.
+4. Propose the smallest alternative that would make the same thing true.
+5. Tell me exactly what to do on the live address to check that the repair worked.
+
+OUTPUT: Your arguments first, as a numbered list. Then stop. Write no code until I reply with the repair I have chosen.
+
+GUARDRAILS: Do not tell me the repair is good. If you have no strong reason to doubt it, say so plainly instead of inventing one. When I do ask you to build, change only what the repair needs. Do not remove Disqus or the privacy notice, and do not break /api/health.
+```
