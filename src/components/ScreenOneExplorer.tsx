@@ -13,6 +13,7 @@ import {
   SearchX,
   RefreshCw,
   CheckCircle2,
+  Tag,
 } from 'lucide-react';
 import {
   ALL_QUARTERS,
@@ -48,6 +49,7 @@ export default function ScreenOneExplorer() {
 
   const [activeQuarterIndex, setActiveQuarterIndex] = useState<number | null>(null);
   const [showRangeEnvelope, setShowRangeEnvelope] = useState<boolean>(true);
+  const [askingPrice, setAskingPrice] = useState<string>('');
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -250,6 +252,15 @@ export default function ScreenOneExplorer() {
     activeQuarterIndex !== null && activeQuarterIndex < activeQuarterTrends.length
       ? activeQuarterTrends[activeQuarterIndex]
       : latestQuarter;
+
+  const numericAskingPrice = parseFloat(askingPrice);
+  const hasValidPrice = !isNaN(numericAskingPrice) && numericAskingPrice > 0;
+  const priceDiff =
+    hasValidPrice && activePoint ? numericAskingPrice - activePoint.medianPrice : 0;
+  const pricePercent =
+    hasValidPrice && activePoint && activePoint.medianPrice > 0
+      ? ((Math.abs(priceDiff) / activePoint.medianPrice) * 100).toFixed(1)
+      : '0.0';
 
   return (
     <div id="screen-1-explorer" className="space-y-6">
@@ -863,10 +874,11 @@ export default function ScreenOneExplorer() {
             </div>
           </div>
         ) : (
-          <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="mt-4 p-4 sm:p-5 bg-slate-50 rounded-xl border border-slate-200 space-y-4">
+            {/* Top Row: Quarterly Detail Header and Stats */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3.5 border-b border-slate-200/80">
               <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-blue-600" />
+                <Clock className="w-4 h-4 text-blue-600 shrink-0" />
                 <span className="font-extrabold text-sm sm:text-base text-slate-900">
                   Quarterly Detail: {activePoint.quarterLabel}
                 </span>
@@ -896,6 +908,87 @@ export default function ScreenOneExplorer() {
                     {formatCompactSGD(activePoint.maxPrice)}
                   </span>
                 </span>
+              </div>
+            </div>
+
+            {/* Bottom Row: Benchmark an Asking Price */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label
+                  htmlFor="asking-price-input"
+                  className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5"
+                >
+                  <Tag className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Benchmark an Asking Price (Optional)</span>
+                </label>
+                {hasValidPrice && (
+                  <button
+                    type="button"
+                    onClick={() => setAskingPrice('')}
+                    className="text-[11px] font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                  >
+                    Clear Price
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="relative w-full sm:w-60 shrink-0">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 font-bold text-sm">
+                    $
+                  </div>
+                  <input
+                    id="asking-price-input"
+                    type="number"
+                    min="0"
+                    step="5000"
+                    value={askingPrice}
+                    onChange={(e) => setAskingPrice(e.target.value)}
+                    placeholder="e.g. 680000"
+                    className="w-full min-h-[44px] pl-7 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-bold text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-slate-400 placeholder:font-normal"
+                  />
+                </div>
+
+                {/* Benchmark Comparison Badge or Helper Prompt */}
+                {hasValidPrice ? (
+                  <div
+                    className={`flex-1 p-2.5 rounded-lg border text-xs sm:text-sm font-semibold flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 ${
+                      priceDiff > 0
+                        ? 'bg-amber-50/90 text-amber-950 border-amber-200'
+                        : priceDiff < 0
+                        ? 'bg-emerald-50/90 text-emerald-950 border-emerald-200'
+                        : 'bg-blue-50/90 text-blue-950 border-blue-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {priceDiff > 0 ? (
+                        <ArrowUpRight className="w-4 h-4 text-amber-600 shrink-0" />
+                      ) : priceDiff < 0 ? (
+                        <TrendingUp className="w-4 h-4 rotate-180 text-emerald-600 shrink-0" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
+                      )}
+                      <span>
+                        {priceDiff > 0
+                          ? `+$${Math.abs(priceDiff).toLocaleString()} (+${pricePercent}%) above ${activePoint.quarterLabel} median`
+                          : priceDiff < 0
+                          ? `-$${Math.abs(priceDiff).toLocaleString()} (-${pricePercent}%) below ${activePoint.quarterLabel} median`
+                          : `Matches the ${activePoint.quarterLabel} median exactly`}
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-medium text-slate-600 self-start sm:self-auto">
+                      {numericAskingPrice > activePoint.maxPrice
+                        ? `▲ Exceeds historical high (${formatCompactSGD(activePoint.maxPrice)})`
+                        : numericAskingPrice < activePoint.minPrice
+                        ? `▼ Below historical low (${formatCompactSGD(activePoint.minPrice)})`
+                        : `Sits within historical range (${formatCompactSGD(activePoint.minPrice)} – ${formatCompactSGD(activePoint.maxPrice)})`}
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 leading-relaxed self-center">
+                    Enter an asking price to compare directly against the {activePoint.quarterLabel} median and historical range.
+                  </p>
+                )}
               </div>
             </div>
           </div>
