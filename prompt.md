@@ -846,8 +846,60 @@ Clear the field and verify that the card reverts cleanly to its standard view wi
 
 **What came back:** One file touched, correct.
 
+## 25. Codex as a blind arbiter - on 1 finding in second row that I rated 0
+```
+ROLE: You are a neutral arbiter between two usability reviewers who rated the same problem differently. You do not know which of them built the product. Do not try to work it out. 
+CONTEXT: The product is an AI-augmented web app. The web app is for HDB resale flat buyers in Singapore to understand how the resale price of a flat compare with historical HDB resale transactions for similar flats in a selected town.  
+Both reviewers inspected it against Nielsen's ten usability heuristics and rated the
+problem on this severity scale:
+0 I don't agree that this is a usability problem at all.
+1 Cosmetic problem only. Need not be fixed unless extra time is available.
+2 Minor usability problem. Fixing this should be given low priority.
+3 Major usability problem. Important to fix, so should be given high priority.
+4 Usability catastrophe. Imperative to fix before the product can be released.
+A rating rests on four factors: how often the problem happens, what it costs when it
+does, whether the person can learn around it, and whether it damages the product's
+standing out of proportion.
+\
+REVIEWER A:
+Where: https://mgmt6110week03probl..., screen 2
+What I did, what I saw: the page allow user to select three combination of town and flat type, and populate one line graph when same town and flat type is selected across the combination cards
+Which heuristic: Nil
+Screen or system: System. It allows user to the freedom to select.
+Severity, and why: 0, unlikely that user would select the same town and flat type across the combination card since the screen is meant for them to make comparison. besides, the graph populate only one line.
+The repair: nothing   
+ 
+REVIEWER B: 
+Where: https://mgmt6110week03probl... - Compare Page
+What I did, what I saw:
+- A comparison minimally means 2 combinations, but the page allows the selection of 1 combination only
+Which heuristic: 5 - Error Prevention
+Screen or system: System
+- Because the code needs to validate that minimally 2 combinations is required
+Severity, and why: 1
+- This is a minor usability bug, a user that wants to compare data can still do so
+The repair:
+- Sends a warning message when a user tries to delete a combination that will result in only 1 data point   
+ 
+EVIDENCE NEITHER REVIEWER CONTROLS: 
+- Reviewers who raised this problem independently, counting A and B: 1 out of 3 
+- Severities that reviewers other than A and B gave this problem: None.
+ 
+GOAL: Judge the evidence, not the reviewers. 
+1. Say whether A and B describe the same problem. If they do not, say so and stop. 
+2. For each of the four factors, say what the evidence shows and what it cannot show. 
+3. Give the severity the evidence supports, and name the factor that decided it. 
+4. Name the one observation that would change your rating, and say how it could be collected quickly. 
+ 
+GUARDRAILS: Do not split the difference between A and B unless the evidence puts the rating there. If the evidence is too thin to decide, say so plainly instead of inventing a reason. Do not ask which reviewer built the product.
+```
+**What came back:** A and B do **not** describe the same usability problem.  
+- Reviewer A evaluates whether users may select the **same town and flat type in multiple comparison cards**, producing only one graph line.
+- Reviewer B evaluates whether the page permits a comparison with **only one combination remaining**.
+These involve different actions, conditions, consequences, and repairs: preventing duplicate combinations would not enforce a minimum of two combinations, and enforcing two combinations would not prevent duplicates. Therefore, no shared severity can be arbitrated from this evidence.
+
 # I stopped the prompt here as the request per day limit on my agent has been exhausted.
-## 25. Standardize the labels for town and flat type
+## 26. Standardize the labels for town and flat type
 ```
 ROLE: You are a sceptical senior developer and usability reviewer working in my existing project. Before you write any code, your job is to argue against the repair I propose.
 
@@ -882,7 +934,7 @@ GUARDRAILS: Do not tell me the repair is good. If you have no strong reason to d
 
 **What came back:** 
 
-## 26. Clarify the Hide Range Envelope button on screen 1
+## 27. Clarify the Hide Range Envelope button on screen 1
 ```
 ROLE: You are a sceptical senior developer and usability reviewer working in my existing project. Before you write any code, your job is to argue against the repair I propose.
 
